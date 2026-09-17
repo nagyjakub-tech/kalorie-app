@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kalorie-shell-v1';
+const CACHE_NAME = 'kalorie-shell-v2';
 const SHELL_FILES = [
   '/',
   '/index.html',
@@ -28,13 +28,13 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
 
-  // Never cache API calls — always go to network.
-  if (request.url.includes('/api/')) {
-    event.respondWith(fetch(request));
+  // Only intercept simple GET requests for the app shell. Leave everything else
+  // (API POST calls, etc.) completely untouched — iOS Safari has known bugs
+  // forwarding request bodies through a service worker's fetch() passthrough.
+  if (request.method !== 'GET' || request.url.includes('/api/')) {
     return;
   }
 
-  // App shell: cache-first, fall back to network.
   event.respondWith(
     caches.match(request).then((cached) => cached || fetch(request))
   );

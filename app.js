@@ -295,10 +295,14 @@ fileInput.onchange = async () => {
     previewImg.src = thumb;
     await runAnalysis(fullImg);
   } catch (err) {
-    showError('Nepodarilo sa spracovať fotku. Skús to znova.');
+    showError('Nepodarilo sa spracovať fotku: ' + describeError(err));
     console.error(err);
   }
 };
+
+function describeError(err) {
+  return (err && err.message) ? err.message : String(err);
+}
 
 async function runAnalysis(imageDataUrl) {
   showAnalyzing();
@@ -310,15 +314,16 @@ async function runAnalysis(imageDataUrl) {
       body: JSON.stringify({ image: base64, mimeType: 'image/jpeg' }),
     });
     if (!res.ok) {
-      const t = await res.text().catch(() => '');
-      throw new Error(`API error ${res.status}: ${t}`);
+      let detail = '';
+      try { detail = (await res.json()).error || ''; } catch { detail = await res.text().catch(() => ''); }
+      throw new Error(`Server vrátil chybu ${res.status}${detail ? ': ' + detail : ''}`);
     }
     const data = await res.json();
     lastResult = data;
     showResult(data);
   } catch (err) {
     console.error(err);
-    showError('Analýza sa nepodarila. Skontroluj internet a skús znova.');
+    showError('Analýza sa nepodarila. ' + describeError(err));
   }
 }
 
@@ -398,11 +403,25 @@ $('clearHistoryBtn').onclick = () => {
   }
 };
 
-// ---- Service worker ---------------------------------------------------
+// ---- Service worker cleanup ---------------------------------------------
+// The app no longer uses a service worker (it caused a bug on iOS Safari where
+// POST requests to /api/estimate got silently dropped). Actively unregister any
+// old one still installed on a device from a previous version of this app, and
+// force one reload if it was actively controlling this page load.
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(console.error);
+  window.addEventListener('load', async () => {
+    const hadController = !!navigator.serviceWorker.controller;
+    const regs = await navigator.serviceWorker.getRegistrations();
+    await Promise.all(regs.map((r) => r.unregister()));
+    if (window.caches) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+    }
+    if (hadController && regs.length && !sessionStorage.getItem('sw_removed_v1')) {
+      sessionStorage.setItem('sw_removed_v1', '1');
+      location.reload();
+    }
   });
 }
 

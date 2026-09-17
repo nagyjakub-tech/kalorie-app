@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Kalorické tabuľky</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kalórie">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>🍽️ Kalórie</h1>
+  <button id="settingsBtn" class="icon-btn" aria-label="Nastavenia">⚙️</button>
+</header>
+
+<main id="app">
+
+  <!-- Dnešný súhrn -->
+  <section class="card summary-card">
+    <div class="summary-row">
+      <div>
+        <div class="summary-kcal" id="todayKcal">0</div>
+        <div class="summary-label">kcal dnes · cieľ <span id="goalLabel">2000</span></div>
+      </div>
+      <div class="ring-wrap">
+        <svg viewBox="0 0 100 100" class="ring">
+          <circle cx="50" cy="50" r="42" class="ring-bg"/>
+          <circle cx="50" cy="50" r="42" class="ring-fg" id="ringFg"/>
+        </svg>
+      </div>
+    </div>
+    <div class="macro-row">
+      <div class="macro"><span id="todayProtein">0</span> g<small>bielkoviny</small></div>
+      <div class="macro"><span id="todayCarbs">0</span> g<small>sacharidy</small></div>
+      <div class="macro"><span id="todayFat">0</span> g<small>tuky</small></div>
+    </div>
+  </section>
+
+  <!-- Posledných 7 dní -->
+  <section class="card">
+    <h2 class="section-title">Posledných 7 dní</h2>
+    <div id="weekChart" class="week-chart"></div>
+  </section>
+
+  <!-- Zoznam dnešných záznamov -->
+  <section class="card">
+    <h2 class="section-title">Dnes</h2>
+    <div id="todayList" class="entry-list">
+      <p class="empty-hint">Zatiaľ žiadny záznam. Odfoť jedlo tlačidlom nižšie 👇</p>
+    </div>
+  </section>
+
+  <!-- Staršia história -->
+  <section class="card">
+    <h2 class="section-title">História</h2>
+    <div id="historyList" class="entry-list"></div>
+  </section>
+
+</main>
+
+<!-- Veľké FAB tlačidlo na fotenie -->
+<div class="fab-wrap">
+  <button id="fabBtn" class="fab" aria-label="Odfotiť jedlo">📷</button>
+</div>
+<input type="file" id="fileInput" accept="image/*" capture="environment" hidden>
+
+<!-- Modal: analýza / potvrdenie -->
+<div id="analyzeModal" class="modal hidden">
+  <div class="modal-sheet">
+    <img id="previewImg" class="preview-img" alt="Náhľad fotky">
+    <div id="analyzeStatus" class="analyze-status">
+      <div class="spinner"></div>
+      <p>Analyzujem jedlo...</p>
+    </div>
+    <div id="resultForm" class="result-form hidden">
+      <label>Názov jedla
+        <input type="text" id="resName">
+      </label>
+      <div class="grid4">
+        <label>Kalórie
+          <input type="number" id="resKcal" inputmode="numeric">
+        </label>
+        <label>Bielkoviny (g)
+          <input type="number" id="resProtein" inputmode="numeric">
+        </label>
+        <label>Sacharidy (g)
+          <input type="number" id="resCarbs" inputmode="numeric">
+        </label>
+        <label>Tuky (g)
+          <input type="number" id="resFat" inputmode="numeric">
+        </label>
+      </div>
+      <p id="resNote" class="result-note"></p>
+      <div class="modal-actions">
+        <button id="cancelBtn" class="btn btn-secondary">Zrušiť</button>
+        <button id="saveBtn" class="btn btn-primary">Uložiť</button>
+      </div>
+    </div>
+    <div id="errorBox" class="error-box hidden">
+      <p id="errorText"></p>
+      <div class="modal-actions">
+        <button id="errorCancelBtn" class="btn btn-secondary">Zrušiť</button>
+        <button id="retryBtn" class="btn btn-primary">Skúsiť znova</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: nastavenia -->
+<div id="settingsModal" class="modal hidden">
+  <div class="modal-sheet">
+    <h2 class="section-title">Nastavenia</h2>
+    <label>Denný cieľ kalórií (kcal)
+      <input type="number" id="goalInput" inputmode="numeric">
+    </label>
+    <div class="modal-actions">
+      <button id="settingsCloseBtn" class="btn btn-secondary">Zavrieť</button>
+      <button id="settingsSaveBtn" class="btn btn-primary">Uložiť</button>
+    </div>
+    <hr class="sep">
+    <button id="clearHistoryBtn" class="btn btn-danger">Vymazať celú históriu</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -56,14 +56,25 @@ module.exports = async function handler(req, res) {
 
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-    const geminiRes = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+
+    let geminiRes;
+    let errText = '';
+    const MAX_ATTEMPTS = 3;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      geminiRes = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (geminiRes.ok) break;
+
+      errText = await geminiRes.text().catch(() => '');
+      const transient = geminiRes.status === 503 || geminiRes.status === 429 || geminiRes.status >= 500;
+      if (!transient || attempt === MAX_ATTEMPTS) break;
+      await new Promise((r) => setTimeout(r, attempt * 800));
+    }
 
     if (!geminiRes.ok) {
-      const errText = await geminiRes.text().catch(() => '');
       res.status(502).json({ error: `Gemini API error ${geminiRes.status}: ${errText.slice(0, 300)}` });
       return;
     }

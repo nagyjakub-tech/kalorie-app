@@ -2,7 +2,7 @@
 // GEMINI_API_KEY is read from the environment (set it in the Vercel project
 // dashboard under Settings -> Environment Variables). It is never sent to the client.
 
-const GEMINI_MODEL = 'gemini-3.6-flash';
+const GEMINI_MODEL = 'gemini-flash-lite-latest';
 
 const PROMPT = `Si výživový expert. Na fotke je jedlo alebo nápoj.
 Identifikuj, čo je na fotke, odhadni veľkosť porcie podľa toho, čo je na fotke vidieť
